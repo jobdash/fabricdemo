@@ -1,0 +1,20 @@
+# Ignored File Types
+.coverage
+*.db3
+*.ipynb
+*.log
+*.pot
+*.pyc
+*.sublime*
+*.swp
+*.map
+*.pid
+
+
+/fabricdemo/static
+/fabricdemo/media/
+
+# specific filenames to ignore
+.idea
+.DS_Store
+local_settings.py
