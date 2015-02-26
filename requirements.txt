@@ -1,0 +1,9 @@
+arrow==0.5.0
+Django==1.7.5
+django-debug-toolbar==1.2.2
+gnureadline==6.3.3
+ipython==2.4.1
+python-dateutil==2.4.0
+six==1.9.0
+sqlparse==0.1.14
+Unipath==1.1

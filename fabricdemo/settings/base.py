@@ -19,6 +19,8 @@ BASE_DIR = os.path.dirname(Path(os.path.dirname(__file__)).parent)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '*_1kcf9pki$+ylug4ejl#x8yu_5zigk%_0)+7y7ai%inw!d-$y'
+FLICKR_KEY = 'd02dbc408cea2963f69b5f1883671254'
+FLICKR_SECRET = '04495fbb6df7182a'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
