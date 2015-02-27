@@ -67,8 +67,8 @@ def manage(command):
     """
     Helper to simplify running Django manage commands.
     """
-    cmd = 'python manage.py {} --settings=fabricdemo.settings.prod'.format(
-        command)
+    cmd = 'python manage.py {} --settings=fabricdemo.settings.{}'.format(
+        command, fab.env.django_settings)
 
     with fab.cd(CODE_DIR), virtualenv(DEMO_ENV):
         fab.run(cmd)
@@ -77,10 +77,11 @@ def manage(command):
 @fab.task(alias='target')
 def setup_hosts(target, user='ubuntu'):
     TARGET_HOSTS = {
-        'demo': '107.170.250.36'
+        'demo': ('107.170.250.36', 'dev'),
+        'web': ('107.170.250.36', 'prod')
     }
 
-    fab.env.hosts = TARGET_HOSTS.get(target)
+    fab.env.hosts, fab.env.django_settings = TARGET_HOSTS.get(target)
     # fab.env.key_filename = SSH_KEY_FILE
     fab.env.user = user
 
