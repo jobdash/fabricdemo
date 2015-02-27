@@ -8,8 +8,8 @@ from fabtools.python import virtualenv
 
 HOME_DIR = '/home/ubuntu'
 DEMO_ENV = '{}/.virtualenvs/fabdemo'.format(HOME_DIR)
-STATIC_DIR = '{}/static/'.format(HOME_DIR)
 CODE_DIR = '{}/fabricdemo'.format(HOME_DIR)
+STATIC_DIR = '{}/static'.format(CODE_DIR)
 GIT_URL = "https://github.com/jobdash/fabricdemo.git"
 SERVER_TPL = """
 # define an upstream server named gunicorn on localhost port 8000
@@ -41,6 +41,11 @@ server {
         proxy_set_header X-Real-IP       $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
+
+    location /static {
+        autoindex on;
+        alias %(static_dir)s;
+    }
 }
 """
 
@@ -55,6 +60,18 @@ stdout_logfile = /var/log/supervisor/gunicorn.log
 stderr_logfile = /var/log/supervisor/gunicorn_err.log
 environment = {environment}
 """
+
+
+# Django helper
+def manage(command):
+    """
+    Helper to simplify running Django manage commands.
+    """
+    cmd = 'python manage.py {} --settings=fabricdemo.settings.prod'.format(
+        command)
+
+    with fab.cd(CODE_DIR), virtualenv(DEMO_ENV):
+        fab.run(cmd)
 
 
 @fab.task(alias='target')
@@ -101,6 +118,7 @@ def setup():
 
     with fab.cd(CODE_DIR), virtualenv(DEMO_ENV):
         require.python.requirements('requirements.txt')
+        manage('collectstatic --noinput')
 
     # Make sure that nginx is installed and running
     require.nginx.disabled('default')
@@ -109,7 +127,7 @@ def setup():
         template_contents=SERVER_TPL,
         port=80,
         server_alias='fabdemo',
-        docroot=STATIC_DIR,
+        static_dir=STATIC_DIR,
     )
 
     # require.nginx.server()
