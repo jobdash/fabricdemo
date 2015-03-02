@@ -1,5 +1,6 @@
 from fabric import api as fab
 from fabric.colors import red as color_red, green
+from fabric.utils import abort
 
 import fabtools
 from fabtools import require
@@ -160,6 +161,13 @@ def setup_hosts(target, user='ubuntu'):
         'demo': ('107.170.250.36', 'dev'),
         'web': ('107.170.250.36', 'prod')
     }
+
+    if target not in TARGET_HOSTS:
+        abort(color_red(
+            'Incorrect server group name.\n\nAvailable choices:\n{}'.format(
+                '\n'.join(TARGET_HOSTS.keys())
+            )
+        ))
 
     fab.env.hosts, fab.env.django_settings = TARGET_HOSTS.get(target)
     # fab.env.key_filename = SSH_KEY_FILE
