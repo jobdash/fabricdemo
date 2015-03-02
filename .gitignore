@@ -12,8 +12,9 @@
 
 bower_components/*
 node_modules/*
-/fabricdemo/static
-/fabricdemo/media/
+/fabricdemo/static/*
+/fabricdemo/staticfiles/dist/*
+/fabricdemo/media/*
 *__pycache__*
 # specific filenames to ignore
 .idea
