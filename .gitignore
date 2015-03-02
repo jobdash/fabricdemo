@@ -10,7 +10,8 @@
 *.map
 *.pid
 
-
+bower_components/*
+node_modules/*
 /fabricdemo/static
 /fabricdemo/media/
 *__pycache__*
