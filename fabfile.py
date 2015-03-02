@@ -194,3 +194,14 @@ def setup():
     #     stdout_logfile='/var/log/supervisor/gunicorn.log',
     #     environment=GUNICORN_ENV
     # )
+
+
+@fab.task
+def deploy():
+    with fab.cd(HOME_DIR):
+        require.git.working_copy(GIT_URL)
+
+    with fab.cd(CODE_DIR), virtualenv(DEMO_ENV):
+        require.python.requirements('requirements.txt')
+        manage('collectstatic --noinput')
+    fabtools.supervisor.restart_process('gunicorn')
