@@ -152,7 +152,7 @@ def setup_hosts(target, user='ubuntu'):
     }
 
     fab.env.django_settings = TARGET_HOST_SETTINGS.get(target)
-    fab.env.hosts = get_droplets(target)
+    fab.env.hosts = [x.ip_address for x in get_droplets(target)]
 
     # fab.env.key_filename = SSH_KEY_FILE
     fab.env.user = user
