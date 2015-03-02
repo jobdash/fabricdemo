@@ -2,6 +2,7 @@ import digitalocean
 
 from fabric import api as fab
 from fabric.colors import red as color_red, green
+from fabric.utils import abort
 
 import fabtools
 from fabtools import require
@@ -104,6 +105,13 @@ def setup_hosts(target, user='ubuntu'):
         'demo': 'dev',
         'web': 'prod'
     }
+
+    if target not in TARGET_HOST_SETTINGS:
+        abort(color_red(
+            'Incorrect server group name.\n\nAvailable choices:\n{}'.format(
+                '\n'.join(TARGET_HOST_SETTINGS.keys())
+            )
+        ))
 
     fab.env.django_settings = TARGET_HOST_SETTINGS.get(target)
     fab.env.hosts = [x.ip_address for x in get_droplets(target)]
