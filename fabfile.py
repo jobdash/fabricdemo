@@ -1,3 +1,5 @@
+import digitalocean
+
 from fabric import api as fab
 from fabric.colors import red as color_red, green
 
@@ -6,6 +8,7 @@ from fabtools import require
 from fabtools.python import virtualenv
 
 
+DO_TOKEN = '1c6439c3b2431e46873a5c6a24e46cdddc9993a1f4915aa5d9485de01a3b3b55'
 HOME_DIR = '/home/ubuntu'
 DEMO_ENV = '{}/.virtualenvs/fabdemo'.format(HOME_DIR)
 CODE_DIR = '{}/fabricdemo'.format(HOME_DIR)
@@ -120,15 +123,37 @@ def find_static_file_changes(start_sha, end_sha):
         return fab.run(find_changes, warn_only=True, quiet=True)
 
 
+def get_droplets(name=None):
+    manager = digitalocean.Manager(token=DO_TOKEN)
+    droplets = manager.get_all_droplets()
+
+    if name is None:
+        return [d for d in droplets if 'fab' in d.name]
+
+    return [d for d in droplets if 'fab' in d.name and name in d.name]
+
+
 # Tasks
+@fab.task
+def list():
+    """
+    List out each server
+    """
+
+    for d in get_droplets():
+        print "ID: {d.id}\t IP: {d.ip_address}\t Name: {d.name}".format(d=d)
+
+
 @fab.task(alias='target')
 def setup_hosts(target, user='ubuntu'):
-    TARGET_HOSTS = {
-        'demo': ('107.170.250.36', 'dev'),
-        'web': ('107.170.250.36', 'prod')
+    TARGET_HOST_SETTINGS = {
+        'demo': 'dev',
+        'web': 'prod'
     }
 
-    fab.env.hosts, fab.env.django_settings = TARGET_HOSTS.get(target)
+    fab.env.django_settings = TARGET_HOST_SETTINGS.get(target)
+    fab.env.hosts = get_droplets(target)
+
     # fab.env.key_filename = SSH_KEY_FILE
     fab.env.user = user
 
@@ -207,14 +232,11 @@ def setup():
 
     if require.supervisor.process_status('gunicorn') == 'STOPPED':
         require.supervisor.start_process('gunicorn')
-    # require.supervisor.process(
-    #     'webapp',
-    #     command='{env}/bin/gunicorn -w 4 fabricdemo.wsgi'.format(env=DEMO_ENV),
-    #     directory=CODE_DIR,
-    #     user='ubuntu',
-    #     stdout_logfile='/var/log/supervisor/gunicorn.log',
-    #     environment=GUNICORN_ENV
-    # )
+
+
+@fab.task
+def deploy():
+    pass
 
 
 @fab.task
