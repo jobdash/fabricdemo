@@ -11,6 +11,39 @@ DEMO_ENV = '{}/.virtualenvs/fabdemo'.format(HOME_DIR)
 CODE_DIR = '{}/fabricdemo'.format(HOME_DIR)
 STATIC_DIR = '{}/static'.format(CODE_DIR)
 GIT_URL = "https://github.com/jobdash/fabricdemo.git"
+NGINX_TPL = """
+user www-data;
+worker_processes 4;
+pid /run/nginx.pid;
+
+events {
+    worker_connections 768;
+}
+
+http {
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+    gzip on;
+    gzip_disable "msie6";
+
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_buffers 16 8k;
+    gzip_http_version 1.1;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+    include /etc/nginx/conf.d/*.conf;
+    include /etc/nginx/sites-enabled/*;
+}
+"""
 SERVER_TPL = """
 # define an upstream server named gunicorn on localhost port 8000
 upstream gunicorn {
@@ -164,11 +197,20 @@ def setup():
     with fab.cd(HOME_DIR):
         require.git.working_copy(GIT_URL)
 
+    with fab.cd(CODE_DIR):
+        # install the javascript packaging tools
+        fab.run('npm install')
+        fab.run('bower install')
+
     with fab.cd(CODE_DIR), virtualenv(DEMO_ENV):
         require.python.requirements('requirements.txt')
+        # build the
+        fab.run('gulp')
         manage('collectstatic --noinput')
 
     # Make sure that nginx is installed and running
+    # We make sure that NGINX has gzip enabled.
+    require.file('/etc/nginx/nginx.conf', contents=NGINX_TPL, user_sudo=True)
     require.nginx.disabled('default')
     require.nginx.site(
         'fabdemo',

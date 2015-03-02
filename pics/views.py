@@ -6,4 +6,4 @@ from django.shortcuts import render
 
 
 def hello(request):
-    return render(request, 'hello.html')
+    return render(request, 'app.html')

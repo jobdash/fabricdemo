@@ -3,8 +3,10 @@ var gulp = require('gulp'),
     minifyHTML = require('gulp-minify-html'),
     // templateCache = require('gulp-angular-templatecache'),
     jshint = require('gulp-jshint'),
+    gzip = require('gulp-gzip'),
     uglify = require('gulp-uglify'),
     concat = require('gulp-concat'),
+    sourcemaps = require('gulp-sourcemaps'),
     ngAnnotate = require('gulp-ng-annotate');
 
 
@@ -44,8 +46,32 @@ gulp.task('build:libs', function () {
     ];
 
     return gulp.src(libs)
+        .pipe(sourcemaps.init({loadMaps: true}))
         .pipe(concat('libs.js'))
-        .pipe(uglify({outSourceMap: true}))
+        .pipe(uglify())
+        .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest(paths.root.dist.js));
+});
 
-})
+
+gulp.task('build:gzip', ['build:libs'], function () {
+    return gulp.src(paths.root.dist.js + '/*.js')
+        .pipe(gzip())
+        .pipe(gulp.dest(paths.root.dist.js));
+});
+
+
+gulp.task('build:app', function () {
+    return gulp.src([
+            paths.root.src.js + '/*.js',
+            '!' + paths.root.src.js + '**/tests/**',
+        ])
+        .pipe(sourcemaps.init({loadMaps: true})
+        .pipe(concat('app.js'))
+        .pipe(uglify())
+        .pipe(sourcemaps.write('.'))
+        .pipe(gulp.dest(paths.root.dist.js));
+});
+
+
+gulp.task('default', ['build:gzip', 'build:app']);
