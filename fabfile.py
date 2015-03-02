@@ -77,52 +77,6 @@ def manage(command):
         fab.run(cmd)
 
 
-# Git helpers
-def find_any_migrations(start_sha, end_sha):
-    """
-    Search through the GIT history to determine if there are any DB migrations.
-    """
-    find_changes = (
-        "git diff-tree --no-commit-id --name-only -r {start}..{end}"
-        " | grep 'migrations'"
-    ).format(start=start_sha, end=end_sha)
-
-    with fab.cd(CODE_DIR):
-        print green("Looking for migrations")
-        # make sure we run the command from the code root directory
-        return fab.run(find_changes, warn_only=True, quiet=True)
-
-
-def find_any_python_installs(start_sha, end_sha):
-    """
-    Check if any requirements files have changed
-    """
-    find_changes = (
-        "git diff-tree --no-commit-id --name-only -r {start}..{end}"
-        " | grep 'requirements'"
-    ).format(start=start_sha, end=end_sha)
-
-    with fab.cd(CODE_DIR):
-        print green("Looking for new requirements")
-        # make sure we run the command from the code root directory
-        return fab.run(find_changes, warn_only=True, quiet=True)
-
-
-def find_static_file_changes(start_sha, end_sha):
-    """
-    Check if any staticfiles have been changed/added/removed
-    """
-    find_changes = (
-        "git diff-tree --no-commit-id --name-only -r {start}..{end}"
-        " | grep 'staticfiles'"
-    ).format(start=start_sha, end=end_sha)
-
-    with fab.cd(CODE_DIR):
-        print green("Looking for changes in staticfiles")
-        # make sure we run the command from the code root directory
-        return fab.run(find_changes, warn_only=True, quiet=True)
-
-
 def get_droplets(name=None):
     manager = digitalocean.Manager(token=DO_TOKEN)
     droplets = manager.get_all_droplets()
@@ -232,26 +186,11 @@ def setup():
 
     if require.supervisor.process_status('gunicorn') == 'STOPPED':
         require.supervisor.start_process('gunicorn')
-
-
-@fab.task
-def deploy():
-    pass
-
-
-@fab.task
-def install_reqs(changes=''):
-    """
-    Install production requriements.
-    """
-    if changes:
-        print color_red("Found new python requirements: ")
-        print color_red(changes)
-    print green("New python requirements found, installing now")
-
-    with fab.cd(CODE_DIR), virtualenv(DEMO_ENV):
-        # make sure that any previously failed pip builds are removed.
-        if fabtools.files.is_dir('/tmp/pip_build_ubuntu'):
-            fabtools.files.remove('/tmp/pip_build_ubuntu', recursive=True)
-        # install from the prod requirements
-        require.python.requirements('requirements.txt')
+    # require.supervisor.process(
+    #     'webapp',
+    #     command='{env}/bin/gunicorn -w 4 fabricdemo.wsgi'.format(env=DEMO_ENV),
+    #     directory=CODE_DIR,
+    #     user='ubuntu',
+    #     stdout_logfile='/var/log/supervisor/gunicorn.log',
+    #     environment=GUNICORN_ENV
+    # )
