@@ -4,13 +4,7 @@ import random
 import arrow
 from django.conf import settings
 from django.shortcuts import render
-import flickr_api
 import requests
-
-
-flickr_api.set_keys(
-    api_key=settings.FLICKR_KEY,
-    api_secret=settings.FLICKR_SECRET)
 
 # Create your views here.
 #
@@ -22,16 +16,6 @@ def hello(request):
     Say hello!
     """
     return render(request, 'hello.html')
-
-
-def oldcats(request):
-    """
-    Show pictures taged with cute or kittens on flickr
-    """
-    results = flickr_api.Photo.search(tags='cute,kittens', safe_search=1)
-    return render(request, 'thumbs.html', {
-        'PICS': [p.getPhotoFile(size_label='Thumbnail') for p in results]
-    })
 
 
 def cats(request):
