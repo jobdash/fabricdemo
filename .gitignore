@@ -10,9 +10,11 @@
 *.map
 *.pid
 
-
-/fabricdemo/static
-/fabricdemo/media/
+bower_components/*
+node_modules/*
+static/*
+/fabricdemo/staticfiles/dist/*
+/fabricdemo/media/*
 *__pycache__*
 # specific filenames to ignore
 .idea
