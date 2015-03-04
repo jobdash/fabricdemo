@@ -2,6 +2,7 @@ import digitalocean
 
 from fabric import api as fab
 from fabric.colors import red as color_red, green
+from fabric.decorators import parallel
 from fabric.utils import abort
 
 import fabtools
@@ -23,7 +24,7 @@ upstream gunicorn {
 
 server {
     listen %(port)d default;
-    access_log /var/log/nginx/%(server_name)saccess.log;
+    access_log /var/log/nginx/%(server_name)s.access.log;
     error_log /var/log/nginx/%(server_name)s.error.log;
     try_files $uri @gunicorn;
 
@@ -57,7 +58,7 @@ GUNICORN_TPL = """\
 [program:gunicorn]
 command = {virtualenv}/bin/gunicorn -w 4 fabricdemo.wsgi
 directory = {directory}
-user = ubuntu
+user = root
 autostart = true
 autorestart = true
 stdout_logfile = /var/log/supervisor/gunicorn.log
@@ -121,6 +122,7 @@ def setup_hosts(target, user='ubuntu'):
 
 
 @fab.task
+@parallel
 def setup():
     # make sure that th eubuntu user exists
     if not fabtools.files.is_dir(HOME_DIR):
